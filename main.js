@@ -28,14 +28,15 @@ console.log(touch.name());
 console.log(tempSensor.name());
 console.log(light.name());
 
-var queueSocket = 'amqp://localhost';
+var queueSocket = 'amqp://192.168.77.87';
 var queueName = 'packet.monitor';
 var encoding = 'UTF-8';
+var pub;
 
 var context = require('rabbit.js').createContext(queueSocket);
 context.on('ready', function() {
     console.log('Context is ready');
-    var pub = context.socket("PUB");
+    pub = context.socket("PUB");
     pub.connect(queueName, function(){
         console.log("Connected to queue");
     });
@@ -55,8 +56,16 @@ function readTempandLight(){
     var celsius = tempSensor.value();
     var lux = light.value();
     console.log("Read sensor data");
-    ELight.build({timestamp: new Date(), value: lux}).save();
-    ETemp.build({timestamp: new Date(), value: celsius}).save();
+//    ELight.build({timestamp: new Date(), value: lux}).save();
+//    ETemp.build({timestamp: new Date(), value: celsius}).save();
+    if(lux < 30){
+        var data = JSON.stringify({message: "Light is low"});
+        pub.write(data, encoding);
+    }
+    if(celsius > 21){
+        var data = JSON.stringify({message: "Temperature is pleasant"});
+        pub.write(data, encoding);
+    }
 
 }
 
