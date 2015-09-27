@@ -45,6 +45,11 @@ context.on('ready', function() {
 
 
 function readSensorValue() { 
+    var piezoData = readPiezo();
+    if(piezoData != undefined){
+        pub.write(piezoData, encoding);
+        piezoData = undefined;
+    }
     readTempandLight();
     
 }                          
@@ -59,11 +64,11 @@ function readTempandLight(){
 //    ELight.build({timestamp: new Date(), value: lux}).save();
 //    ETemp.build({timestamp: new Date(), value: celsius}).save();
     if(lux < 30){
-        var data = JSON.stringify({message: "Light is low"});
+        var data = JSON.stringify({eventlevel:0, message: "It's Getting Darker and Darker!", payload:{light: lux}});
         pub.write(data, encoding);
     }
     if(celsius > 21){
-        var data = JSON.stringify({message: "Temperature is pleasant"});
+        var data = JSON.stringify({eventlevel: 1, message: "Temperature is pleasant", payload:{temp: celsius}});
         pub.write(data, encoding);
     }
 
@@ -158,25 +163,30 @@ console.log(piezo.name() + " exceeded the threshold value of " +
 console.log("out of a total of " + NUMBER_OF_SECONDS*SAMPLES_PER_SECOND +
             " readings.");
 console.log("");
+    if(count> 1){
+        var piezoVal = {eventlevel:1, message:"Stop touching me", payload:{count: count, readings: NUMBER_OF_SECONDS*SAMPLES_PER_SECOND, threshold: THRESHOLD}}
+        return piezoVal;
+    }
 
-// Print a graphical representation of the average value sampled
-// each second for the past 10 seconds, using a scale factor of 15
-console.log("Now printing a graphical representation of the average reading ");
-console.log("each second for the last " + NUMBER_OF_SECONDS + " seconds.");
-var SCALE_FACTOR = 15;
-for (var i=0; i < NUMBER_OF_SECONDS; i++) {
-    var sum = 0;
-    for (var j=0; j < SAMPLES_PER_SECOND; j++) {
-        sum += buffer[i*SAMPLES_PER_SECOND+j];
-    }
-    var average = sum / SAMPLES_PER_SECOND;
-    var stars_to_print = Math.round(average / SCALE_FACTOR);
-    var string = "(" + ("    " + Math.round(average)).slice(-4) + ") | ";
-    for (var j=0; j < stars_to_print; j++) {
-        string += "*";
-    }
-    console.log(string);
-}
+    
+//// Print a graphical representation of the average value sampled
+//// each second for the past 10 seconds, using a scale factor of 15
+//console.log("Now printing a graphical representation of the average reading ");
+//console.log("each second for the last " + NUMBER_OF_SECONDS + " seconds.");
+//var SCALE_FACTOR = 15;
+//for (var i=0; i < NUMBER_OF_SECONDS; i++) {
+//    var sum = 0;
+//    for (var j=0; j < SAMPLES_PER_SECOND; j++) {
+//        sum += buffer[i*SAMPLES_PER_SECOND+j];
+//    }
+//    var average = sum / SAMPLES_PER_SECOND;
+//    var stars_to_print = Math.round(average / SCALE_FACTOR);
+//    var string = "(" + ("    " + Math.round(average)).slice(-4) + ") | ";
+//    for (var j=0; j < stars_to_print; j++) {
+//        string += "*";
+//    }
+//    console.log(string);
+//}
 }
 function delay( milliseconds ) {
     var startTime = Date.now();
